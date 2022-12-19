@@ -3,9 +3,11 @@ import {
   aws_iam as iam,
   aws_lambda as lambda,
   aws_ec2 as ec2,
+  aws_route53 as route53,
   Tags,
   StackProps,
 } from "aws-cdk-lib";
+import { Service } from "aws-cdk-lib/aws-servicediscovery";
 import { Construct } from "constructs";
 
 // import { readFileSync } from "fs";
@@ -15,15 +17,17 @@ export interface spotBaseprops extends StackProps {
   myIPs: string[];
   sshPublicKey: string;
   prefix: string;
+  route53domainName: string;
 }
 
 export interface spotBase {
   vpc: ec2.Vpc;
   securityGroup: ec2.SecurityGroup;
-  ec2role: iam.Role;
+  ec2Policy: iam.ManagedPolicy;
   fleetSpotRoleArn: string;
   keyPairName: string;
   subnets: string[];
+  route53hostZone: route53.IHostedZone;
 }
 
 export class spotBaseStack extends cdk.Stack {
@@ -70,7 +74,7 @@ export class spotBaseStack extends cdk.Stack {
     Tags.of(securityGroup).add("Name", `${this.stackName}SG`);
 
     // IAM policy
-    const policy = new iam.ManagedPolicy(this, "EC2Policy", {
+    const ec2Policy = new iam.ManagedPolicy(this, "EC2Policy", {
       description: "",
       statements: [
         new iam.PolicyStatement({
@@ -129,18 +133,8 @@ export class spotBaseStack extends cdk.Stack {
       assumedBy: new iam.ServicePrincipal("spotfleet.amazonaws.com"),
       path: "/",
     });
-    // EC2 IAM rule
-    const ec2role = new iam.Role(this, "EC2Role", {
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonS3ReadOnlyAccess"),
-        iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2ReadOnlyAccess"),
-        iam.ManagedPolicy.fromAwsManagedPolicyName(
-          "service-role/AmazonEC2RoleforSSM"
-        ),
-        policy,
-      ],
-      assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
-      path: "/",
+    const hostedZone = route53.HostedZone.fromLookup(this, "HostedZoneID", {
+      domainName: props.route53domainName,
     });
 
     // SSH key pair
@@ -152,9 +146,10 @@ export class spotBaseStack extends cdk.Stack {
     this.base = {
       vpc: vpc,
       securityGroup: securityGroup,
-      ec2role: ec2role,
+      ec2Policy: ec2Policy,
       fleetSpotRoleArn: fleetSpotRole.roleArn,
       keyPairName: keyPair.keyName,
+      route53hostZone: hostedZone,
       subnets: vpc.publicSubnets.map((d): string => {
         return d.subnetId;
       }),

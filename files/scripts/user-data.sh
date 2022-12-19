@@ -13,7 +13,7 @@ setup() {
     amazon-linux-extras install nginx1 -y
     yum install aws-nitro-enclaves-acm -y
     yum install amazon-cloudwatch-agent -y
-
+    mv /etc/nitro_enclaves/acm.example.yaml /etc/nitro_enclaves/acm.yaml
 }
 
 set -ex

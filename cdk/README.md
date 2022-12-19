@@ -23,10 +23,11 @@ aws ssm put-parameter --name "/${PREFIX}/discordPubKey" --type "String" --value 
 ## When using slack
 # set slack webhookURL
 aws ssm put-parameter --name "/${PREFIX}/slackWebhookURL" --type "SecureString" --value "${SLACK_WEBHOOKURL}"
+
 ```
 
 ## build & deploy
 
 ```
-. .env; npx aws-cdk deploy sdtdPVE01
+. .env; npx aws-cdk deploy proxy01
 ```

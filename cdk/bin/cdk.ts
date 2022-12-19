@@ -3,6 +3,7 @@ import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { spotServerStack } from "../lib/spot-server-stack";
 import { spotBaseStack } from "../lib/base-stack";
+import { attachRoleStack } from "../lib/attach-role-stack";
 import { sshPublicKey, getMyIP, getEnv } from "../lib/utils";
 
 const prefix = "proxy01";
@@ -16,13 +17,14 @@ cdk.Tags.of(app).add("CDKName", prefix);
 const baseStack = new spotBaseStack(app, `${prefix}Base`, {
   env: env,
   prefix: prefix,
+  route53domainName: getEnv("ROUTE53_ZONE_DNS_NAME"),
 
   // ssh-pulickey strings (default: `ssh-add -L|head -n 1` command)
   sshPublicKey: sshPublicKey(),
   // my inetnet ip address. ex:"15.230.221.1/32" (default: `curl inet-ip.info`)
   myIPs: [getMyIP()],
 });
-cdk.Tags.of(baseStack).add("stackName", baseStack.stackName);
+cdk.Tags.of(baseStack).add("stackName", `baseStack.stackNameServer`);
 
 [
   {
@@ -33,13 +35,20 @@ cdk.Tags.of(baseStack).add("stackName", baseStack.stackName);
       base: baseStack.base,
       snapshotGen: 0, // number of snapshot generations
       volumeSize: 0, // EBS volume size (GB)
-      route53domainName: getEnv("ROUTE53_ZONE_DNS_NAME"),
-      route53hostZone: getEnv("ROUTE53_ZONEID"),
       postService: getEnv("POSTSERVICE"),
       // discordChannelID: getEnv("DISCORD_CHANNELID"),
     },
   },
 ].map((conf) => {
-  const stack = new spotServerStack(app, conf.serverName, conf.props);
-  cdk.Tags.of(stack).add("stackName", stack.stackName);
+  const serverStack = new spotServerStack(
+    app,
+    `${conf.serverName}Server`,
+    conf.props
+  );
+  cdk.Tags.of(serverStack).add("stackName", serverStack.stackName);
+  const attachStack = new attachRoleStack(app, `${conf.serverName}AttachRole`, {
+    env: env,
+    serverstack: serverStack,
+  });
+  cdk.Tags.of(attachStack).add("stackName", attachStack.stackName);
 });

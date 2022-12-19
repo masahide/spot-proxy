@@ -3,5 +3,9 @@
     "ap-northeast-1a",
     "ap-northeast-1c",
     "ap-northeast-1d"
-  ]
+  ],
+  "hosted-zone:account=586126379993:domainName=suzu.me.uk:region=ap-northeast-1": {
+    "Id": "/hostedzone/Z08397422LH3IDIZRIAIU",
+    "Name": "suzu.me.uk."
+  }
 }
