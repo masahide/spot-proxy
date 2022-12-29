@@ -194,7 +194,6 @@ export class spotServerStack extends cdk.Stack {
           value: param.param.stringValue,
         });
       })*/
-      /*
     new CfnOutput(
       this,
       `run_Aws_Commands_That_Need_To_Be_Executed_Subsequently`,
@@ -202,8 +201,5 @@ export class spotServerStack extends cdk.Stack {
         value: `aws iam attach-role-policy --role-name ${acmRole.roleName} --policy-arn ${acmRolePolicy.managedPolicyArn}`,
       }
     );
-    */
-      this.acmRole=acmRole;
-      this.acmRolePolicy=acmRolePolicy;
   }
 }

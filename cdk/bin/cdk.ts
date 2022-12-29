@@ -3,7 +3,6 @@ import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { spotServerStack } from "../lib/spot-server-stack";
 import { spotBaseStack } from "../lib/base-stack";
-import { attachRoleStack } from "../lib/attach-role-stack";
 import { sshPublicKey, getMyIP, getEnv } from "../lib/utils";
 
 const prefix = "proxy01";
@@ -46,9 +45,4 @@ cdk.Tags.of(baseStack).add("stackName", `baseStack.stackNameServer`);
     conf.props
   );
   cdk.Tags.of(serverStack).add("stackName", serverStack.stackName);
-  const attachStack = new attachRoleStack(app, `${conf.serverName}AttachRole`, {
-    env: env,
-    serverstack: serverStack,
-  });
-  cdk.Tags.of(attachStack).add("stackName", attachStack.stackName);
 });
